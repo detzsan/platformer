@@ -11,11 +11,8 @@ public class PlayerMovement : MonoBehaviour
     public bool canJump = true;
      // canJump checks whethere you can jump. Void OnCollision- checks whether you've hit the ground, and if you have then canJump is set to true.
      public bool canDash = true;
-
-
  
-
-    public Rigidbody2D rb; 
+    public Rigidbody2D rb;
 
     void OnCollisionEnter2D(Collision2D col)
     {
@@ -30,6 +27,7 @@ public class PlayerMovement : MonoBehaviour
     {
         var move = Input.GetAxisRaw("Horizontal");
         transform.position = transform.position + new Vector3(move * moveSpeed * Time.fixedDeltaTime, 0, 0);
+        
 
         if (Input.GetButton("Jump") && canJump == true) //Mathf.Abs(rb.velocity.y) < 0.001f
         {
