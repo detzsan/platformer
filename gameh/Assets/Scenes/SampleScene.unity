@@ -157,7 +157,7 @@ Rigidbody2D:
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 5ba6a344594e15443ae58995509a218e, type: 2}
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 1
@@ -267,6 +267,10 @@ MonoBehaviour:
   moveSpeed: 5
   jumpForce: 4
   gravityMultiplier: 3
+  dashSpeed: 10
+  dashCooldown: 0.5
+  canJump: 0
+  canDash: 0
   isGrounded: 0
   rb: {fileID: 191948034}
 --- !u!1 &519420028
