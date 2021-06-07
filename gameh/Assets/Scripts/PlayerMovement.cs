@@ -5,71 +5,123 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
 
-    public float moveSpeed = 5f;
-    public float jumpForce = 4f;
-    public float gravityMultiplier = 3f;
-    public float dashSpeed = 10f;
-    public float dashCooldown = 0.5f;
+    [Header("Horizontal Movement")]
+    public float moveSpeed = 15f;
+    public Vector2 direction;
+    private bool faceRight = true;
 
-     public bool canJump;
-     public bool canDash;
-     public bool isGrounded;
- 
+    [Header("Vertical Movement")]
+    public float jumpForce = 5f;
+    public float jumpDelay = 0.25f;
+    private float jumpTimer;
+
+    [Header("Unity Stuff")]
     public Rigidbody2D rb;
+    public LayerMask groundLayer;
 
-    void OnCollisionStay2D(Collision2D col)
+    [Header("Physics")]
+    public float maxSpeed = 10f;
+    public float linearDrag = 5f;
+    public float gravity = 1f;
+    public float fallMultiplier = 5f;
+
+    [Header("Collision")]
+    public bool isGrounded = false;
+    public float groundLength = 0.4f;
+    public Vector3 colliderOffset;
+
+    void Update()
     {
-        if(col.collider.tag == "Ground")
+        isGrounded = Physics2D.Raycast(transform.position + colliderOffset, Vector2.down, groundLength, groundLayer) || Physics2D.Raycast(transform.position - colliderOffset, Vector2.down, groundLength, groundLayer); // jump raycast
+
+        if(Input.GetButtonDown("Jump"))
         {
-            canJump = true;
-            canDash = true;
-            isGrounded = true;
+            jumpTimer = Time.time + jumpDelay; // if the current time is within the jump timer time (Current time + Jump delay) you can jump.
         }
-    }
 
-    void OnCollisionExit2D(Collision2D col)
-    {
-        isGrounded = false;
+        direction = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
     }
 
     void FixedUpdate()
     {
-        var move = Input.GetAxisRaw("Horizontal");
-        transform.position = transform.position + new Vector3(move * moveSpeed * Time.fixedDeltaTime, 0, 0);
-        
-
-        if (Input.GetButton("Jump") && canJump == true) //Mathf.Abs(rb.velocity.y) < 0.001f
+        moveChar(direction.x);
+        if(jumpTimer >Time.time && isGrounded)
         {
-            rb.velocity = Vector2.up * jumpForce;
-            canJump = false;
+            Jump();
         }
 
-        if(rb.velocity.y < 0)
+        modifyPhysics();
+    }
+
+    void moveChar(float horizontal)
+    {
+        rb.AddForce(Vector2.right * horizontal * moveSpeed);
+
+        if((horizontal > 0 && !faceRight || horizontal < 0 && faceRight))
         {
-            rb.velocity += Vector2.up * Physics2D.gravity.y * (gravityMultiplier - 1) * Time.fixedDeltaTime;
+            Flip();
         }
 
-        // Dash
-
-
-        // expand this code, make it so the buttons you press also determine direction. for example, make hitting only dash make u go forward, pressing up make u go up, pressing up and right make u go up and right, etc.
-        if ((Input.GetKey(KeyCode.G)) && canDash == true)
+        if(Mathf.Abs(rb.velocity.x) > maxSpeed) // Setting a Maximum Speed
         {
-            canDash = false;
-            rb.AddForce(new Vector2(dashSpeed,0), ForceMode2D.Impulse);
+            rb.velocity = new Vector2(Mathf.Sign(rb.velocity.x) * maxSpeed, rb.velocity.y);
+        }
 
-            StartCoroutine("DashTimer");
+    }
+
+    void Jump()
+    {
+        rb.velocity = new Vector2(rb.velocity.x, 0);
+        rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+        jumpTimer = 0;
+    }
+
+    void modifyPhysics() // Drag
+    {
+        bool changeDirection = (direction.x > 0 && rb.velocity.x < 0) || (direction.x < 0 && rb.velocity.x > 0);
+
+        if(isGrounded)
+        {
+            if(Mathf.Abs(direction.x) < 0.4f || changeDirection)
+            {
+                rb.drag = linearDrag;
+            }
+            else
+            {
+                rb.drag = 0f;
+            }
+            rb.gravityScale = 0;
+        }
+
+        else // if not on ground
+        {
+            rb.gravityScale = gravity;
+            rb.drag = linearDrag * 0.15f;
+            if (rb.velocity.y < 0)
+            {
+                rb.gravityScale = gravity * fallMultiplier;
+            }
+            else if(rb.velocity.y >0 && !Input.GetButton("Jump")) // if jumping but let go of the jump key
+            {
+                rb.gravityScale = gravity * (fallMultiplier / 2); // limit jump height
+            }
+            {
+
+            }
         }
     }
 
-    // Timer to wait for dash to return.
-    IEnumerator DashTimer()
-    {   
-        // If they touched the ground, then isGrounded is set to true and they can dash again.
-        if(isGrounded == true)
-        {
-            yield return new WaitForSeconds(dashCooldown);
-            canDash = true;
-        }
+    void Flip() // Changing the way Char Faces
+    {
+        faceRight = !faceRight;
+        transform.rotation = Quaternion.Euler(0, faceRight ? 0 : 180, 0);
     }
+
+    private void OnDrawGizmos() // visual representation of raycast
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(transform.position + colliderOffset, transform.position + colliderOffset + Vector3.down * groundLength);
+        Gizmos.DrawLine(transform.position - colliderOffset, transform.position - colliderOffset + Vector3.down * groundLength);
+    }
+
 }
