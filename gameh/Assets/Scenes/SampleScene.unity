@@ -242,6 +242,10 @@ MonoBehaviour:
   direction: {x: 0, y: 0}
   jumpForce: 5
   jumpDelay: 0.25
+  dashForce: 20
+  canDash: 0
+  dashDelay: 0.25
+  dashTimer: 0
   rb: {fileID: 191948034}
   groundLayer:
     serializedVersion: 2
@@ -250,7 +254,7 @@ MonoBehaviour:
   linearDrag: 5
   gravity: 1
   fallMultiplier: 5
-  isGrounded: 1
+  isGrounded: 0
   groundLength: 0.4
   colliderOffset: {x: 0.13, y: 0, z: 0}
 --- !u!1 &519420028

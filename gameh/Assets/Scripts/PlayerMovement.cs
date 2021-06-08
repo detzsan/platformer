@@ -15,6 +15,12 @@ public class PlayerMovement : MonoBehaviour
     public float jumpDelay = 0.25f;
     private float jumpTimer;
 
+    [Header("Dashes")]
+    public float dashForce = 20f;
+    public bool canDash;
+    public float dashDelay = 0.25f;
+    public float dashTimer;
+
     [Header("Unity Stuff")]
     public Rigidbody2D rb;
     public LayerMask groundLayer;
@@ -33,11 +39,27 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         isGrounded = Physics2D.Raycast(transform.position + colliderOffset, Vector2.down, groundLength, groundLayer) || Physics2D.Raycast(transform.position - colliderOffset, Vector2.down, groundLength, groundLayer); // jump raycast
+        
+        if(isGrounded)
+        {
+            canDash = true;
+        }
 
         if(Input.GetButtonDown("Jump"))
         {
             jumpTimer = Time.time + jumpDelay; // if the current time is within the jump timer time (Current time + Jump delay) you can jump.
         }
+
+        if(Input.GetKeyDown(KeyCode.F))
+        {
+            dashTimer = Time.time + dashDelay; // same as jump
+        }
+
+        /*
+        Explanation of how jump/dash works.
+        When you hit the jump/dash key, the jump/dash timer updates to be more than Time.time.
+        In the FixedUpdate, if jumpTimer is MORE than Time.time then you jump/dash.
+        */
 
         direction = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
     }
@@ -45,9 +67,14 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate()
     {
         moveChar(direction.x);
-        if(jumpTimer >Time.time && isGrounded)
+        if(jumpTimer > Time.time && isGrounded)
         {
             Jump();
+        }
+
+        if(dashTimer > Time.time && canDash)
+        {
+            Dash();
         }
 
         modifyPhysics();
@@ -74,6 +101,14 @@ public class PlayerMovement : MonoBehaviour
         rb.velocity = new Vector2(rb.velocity.x, 0);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         jumpTimer = 0;
+    }
+
+    void Dash()
+    {
+        
+        rb.velocity = new Vector2(rb.velocity.x, 0);
+        rb.AddForce(new Vector2(dashForce, dashForce));
+        dashTimer = 0;
     }
 
     void modifyPhysics() // Drag
