@@ -107,7 +107,7 @@ public class PlayerMovement : MonoBehaviour
     {
         
         rb.velocity = new Vector2(rb.velocity.x, 0);
-        rb.AddForce(new Vector2(dashForce, dashForce));
+        rb.AddForce(new Vector2(5,5) * dashForce, ForceMode2D.Impulse);
         dashTimer = 0;
     }
 
