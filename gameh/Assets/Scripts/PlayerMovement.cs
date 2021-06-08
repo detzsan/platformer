@@ -16,8 +16,8 @@ public class PlayerMovement : MonoBehaviour
     private float jumpTimer;
 
     [Header("Dashes")]
-    public float dashForce = 20f;
-    public bool canDash;
+    public float dashForce = 5f;
+    public bool canDash = false;
     public float dashDelay = 0.25f;
     public float dashTimer;
 
@@ -29,6 +29,7 @@ public class PlayerMovement : MonoBehaviour
     public float maxSpeed = 10f;
     public float linearDrag = 5f;
     public float gravity = 1f;
+    public float gravityOffTime = 0.2f; // How long before turning gravity back on
     public float fallMultiplier = 5f;
 
     [Header("Collision")]
@@ -36,21 +37,26 @@ public class PlayerMovement : MonoBehaviour
     public float groundLength = 0.4f;
     public Vector3 colliderOffset;
 
-    void Update()
-    {
-        isGrounded = Physics2D.Raycast(transform.position + colliderOffset, Vector2.down, groundLength, groundLayer) || Physics2D.Raycast(transform.position - colliderOffset, Vector2.down, groundLength, groundLayer); // jump raycast
-        
-        if(isGrounded)
+
+     void OnCollisionStay2D(Collision2D col)
+ {
+     if(col.gameObject.tag == "Ground")
         {
             canDash = true;
         }
+ }
+
+    void Update()
+    {
+
+        isGrounded = Physics2D.Raycast(transform.position + colliderOffset, Vector2.down, groundLength, groundLayer) || Physics2D.Raycast(transform.position - colliderOffset, Vector2.down, groundLength, groundLayer); // jump raycast
 
         if(Input.GetButtonDown("Jump"))
         {
             jumpTimer = Time.time + jumpDelay; // if the current time is within the jump timer time (Current time + Jump delay) you can jump.
         }
 
-        if(Input.GetKeyDown(KeyCode.F))
+        if(Input.GetKeyDown(KeyCode.G))
         {
             dashTimer = Time.time + dashDelay; // same as jump
         }
@@ -62,6 +68,7 @@ public class PlayerMovement : MonoBehaviour
         */
 
         direction = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+
     }
 
     void FixedUpdate()
@@ -72,12 +79,12 @@ public class PlayerMovement : MonoBehaviour
             Jump();
         }
 
+        modifyPhysics();
+
         if(dashTimer > Time.time && canDash)
         {
             Dash();
         }
-
-        modifyPhysics();
     }
 
     void moveChar(float horizontal)
@@ -105,10 +112,14 @@ public class PlayerMovement : MonoBehaviour
 
     void Dash()
     {
-        
+
+        gravity = 0;
+        Invoke("resetGravity", gravityOffTime); // Invokes the function resetGravity, which sets gravity back to 1. gravityOffTime is how long it takes before excecuting the resetGravity function.
         rb.velocity = new Vector2(rb.velocity.x, 0);
-        rb.AddForce(new Vector2(dashForce, dashForce));
+        rb.AddForce(new Vector2(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical")) * dashForce, ForceMode2D.Impulse);
+        canDash = false;
         dashTimer = 0;
+
     }
 
     void modifyPhysics() // Drag
@@ -128,7 +139,7 @@ public class PlayerMovement : MonoBehaviour
             rb.gravityScale = 0;
         }
 
-        else // if not on ground
+        else // if not on ground 
         {
             rb.gravityScale = gravity;
             rb.drag = linearDrag * 0.15f;
@@ -150,6 +161,11 @@ public class PlayerMovement : MonoBehaviour
     {
         faceRight = !faceRight;
         transform.rotation = Quaternion.Euler(0, faceRight ? 0 : 180, 0);
+    }
+
+    void resetGravity() // resets gravity for the dash
+    {
+        gravity = 1;
     }
 
     private void OnDrawGizmos() // visual representation of raycast

@@ -242,7 +242,7 @@ MonoBehaviour:
   direction: {x: 0, y: 0}
   jumpForce: 5
   jumpDelay: 0.25
-  dashForce: 20
+  dashForce: 5
   canDash: 0
   dashDelay: 0.25
   dashTimer: 0
@@ -353,7 +353,7 @@ GameObject:
   - component: {fileID: 1352706484}
   m_Layer: 8
   m_Name: ground
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
