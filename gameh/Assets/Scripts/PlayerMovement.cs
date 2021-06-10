@@ -12,12 +12,12 @@ public class PlayerMovement : MonoBehaviour
     private bool faceRight = true;
 
     [Header("Vertical Movement")]
-    public float jumpForce = 5f;
+    public float jumpForce = 6f;
     public float jumpDelay = 0.25f;
     private float jumpTimer;
 
     [Header("Dashes")]
-    public float dashForce = 5f;
+    public float dashForce = 8.5f;
     public float dashDelay = 0.25f;
     public float dashTimer;
     public bool canDash = false;
@@ -31,8 +31,8 @@ public class PlayerMovement : MonoBehaviour
     public float maxSpeed = 10f;
     public float linearDrag = 5f;
     public float gravity = 1f;
-    public float gravityOffTime = 0.2f; // How long before turning gravity back on
-    public float fallMultiplier = 5f;
+    public float gravityOffTime = 0.3f; // How long before turning gravity back on
+    public float fallMultiplier = 3f;
 
     [Header("Ground Collision")]
     public bool isGrounded = false;
@@ -128,7 +128,7 @@ public class PlayerMovement : MonoBehaviour
     void Dash()
     {
         
-        rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y);
+        rb.velocity = new Vector2(rb.velocity.x, 0);
         gravity = 0;
         Invoke("resetGravity", gravityOffTime); // Invokes the function resetGravity, which sets gravity back to 1. gravityOffTime is how long it takes before excecuting the resetGravity function.
         rb.AddForce(new Vector2(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical")) * dashForce, ForceMode2D.Impulse);
@@ -193,7 +193,7 @@ make x and y uneven to make it an angle.
             {
                 rb.gravityScale = gravity * fallMultiplier;
             }
-            else if(rb.velocity.y >0 && !Input.GetButton("Jump")) // if jumping but let go of the jump key
+            else if(rb.velocity.y > 0 && !Input.GetButton("Jump")) // if jumping but let go of the jump key
             {
                 rb.gravityScale = gravity * (fallMultiplier / 2); // limit jump height
             }
