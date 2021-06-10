@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,10 +17,11 @@ public class PlayerMovement : MonoBehaviour
     private float jumpTimer;
 
     [Header("Dashes")]
-    public float dashForce = 20f;
-    public bool canDash;
+    public float dashForce = 5f;
     public float dashDelay = 0.25f;
     public float dashTimer;
+    public bool canDash = false;
+    public bool isDashing = false;
 
     [Header("Unity Stuff")]
     public Rigidbody2D rb;
@@ -29,28 +31,46 @@ public class PlayerMovement : MonoBehaviour
     public float maxSpeed = 10f;
     public float linearDrag = 5f;
     public float gravity = 1f;
+    public float gravityOffTime = 0.2f; // How long before turning gravity back on
     public float fallMultiplier = 5f;
 
-    [Header("Collision")]
+    [Header("Ground Collision")]
     public bool isGrounded = false;
     public float groundLength = 0.4f;
-    public Vector3 colliderOffset;
+    public Vector3 groundColliderOffset;
 
-    void Update()
-    {
-        isGrounded = Physics2D.Raycast(transform.position + colliderOffset, Vector2.down, groundLength, groundLayer) || Physics2D.Raycast(transform.position - colliderOffset, Vector2.down, groundLength, groundLayer); // jump raycast
-        
-        if(isGrounded)
+    [Header("Wall")]
+    public bool onWall = false;
+    public bool isWallSliding;
+    public float wallLength = 0.65f;
+    public Vector3 wallColliderOffset;
+    public float wallSlideSpeed = -1f;
+
+
+     void OnCollisionStay2D(Collision2D col)
+ {
+     if(col.gameObject.tag == "Ground")
         {
             canDash = true;
         }
+ }
+
+    void Update()
+    {
+
+        // jump raycast
+        isGrounded = Physics2D.Raycast(transform.position + groundColliderOffset, Vector2.down, groundLength, groundLayer) || Physics2D.Raycast(transform.position - groundColliderOffset, Vector2.down, groundLength, groundLayer); 
+        
+        // wall raycast
+        onWall = Physics2D.Raycast(transform.position + wallColliderOffset, Vector2. right, wallLength, groundLayer);
+        
 
         if(Input.GetButtonDown("Jump"))
         {
             jumpTimer = Time.time + jumpDelay; // if the current time is within the jump timer time (Current time + Jump delay) you can jump.
         }
 
-        if(Input.GetKeyDown(KeyCode.F))
+        if(Input.GetKeyDown(KeyCode.G))
         {
             dashTimer = Time.time + dashDelay; // same as jump
         }
@@ -62,22 +82,24 @@ public class PlayerMovement : MonoBehaviour
         */
 
         direction = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+
     }
 
     void FixedUpdate()
     {
         moveChar(direction.x);
+        wallSlide();
         if(jumpTimer > Time.time && isGrounded)
         {
             Jump();
         }
 
+        modifyPhysics();
+
         if(dashTimer > Time.time && canDash)
         {
             Dash();
         }
-
-        modifyPhysics();
     }
 
     void moveChar(float horizontal)
@@ -106,10 +128,45 @@ public class PlayerMovement : MonoBehaviour
     void Dash()
     {
         
-        rb.velocity = new Vector2(rb.velocity.x, 0);
-        rb.AddForce(new Vector2(5,5) * dashForce, ForceMode2D.Impulse);
+        rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y);
+        gravity = 0;
+        Invoke("resetGravity", gravityOffTime); // Invokes the function resetGravity, which sets gravity back to 1. gravityOffTime is how long it takes before excecuting the resetGravity function.
+        rb.AddForce(new Vector2(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical")) * dashForce, ForceMode2D.Impulse);
+        canDash = false;
         dashTimer = 0;
+
     }
+
+    void wallSlide() // Wallsliding
+    {
+        if (onWall && !isGrounded && rb.velocity.y < 0)
+        {
+            isWallSliding = true;
+        }
+        else
+        {
+            isWallSliding = false;
+        }
+
+        if(isWallSliding)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, wallSlideSpeed);
+        }
+    }
+
+/*
+IDEA
+for walljump
+add a bool called canWallJump
+when sliding down wall
+set to true.
+if u press "jump" key
+when canWallJump is active
+it makes you jump at an angle
+away from the wall. rb.addforce (x,y)
+make x and y uneven to make it an angle.
+
+*/
 
     void modifyPhysics() // Drag
     {
@@ -128,7 +185,7 @@ public class PlayerMovement : MonoBehaviour
             rb.gravityScale = 0;
         }
 
-        else // if not on ground
+        else // if not on ground 
         {
             rb.gravityScale = gravity;
             rb.drag = linearDrag * 0.15f;
@@ -152,11 +209,19 @@ public class PlayerMovement : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, faceRight ? 0 : 180, 0);
     }
 
+    void resetGravity() // resets gravity for the dash
+    {
+        gravity = 1;
+    }
+
     private void OnDrawGizmos() // visual representation of raycast
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position + colliderOffset, transform.position + colliderOffset + Vector3.down * groundLength);
-        Gizmos.DrawLine(transform.position - colliderOffset, transform.position - colliderOffset + Vector3.down * groundLength);
+        // Ground detection raycast
+        Gizmos.DrawLine(transform.position + groundColliderOffset, transform.position + groundColliderOffset + Vector3.down * groundLength);
+        Gizmos.DrawLine(transform.position - groundColliderOffset, transform.position - groundColliderOffset + Vector3.down * groundLength);
+        // Wall detection raycast
+        Gizmos.DrawLine(transform.position + wallColliderOffset, transform.position + wallColliderOffset + Vector3.right * wallLength);
     }
 
 }
