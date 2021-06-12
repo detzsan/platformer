@@ -29,7 +29,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Physics")]
     public float maxSpeed = 10f;
-    public float linearDrag = 5f;
+    public float linearDrag = 4f;
     public float gravity = 1f;
     public float gravityOffTime = 0.3f; // How long before turning gravity back on
     public float fallMultiplier = 3f;
@@ -65,7 +65,7 @@ public class PlayerMovement : MonoBehaviour
         onWall = Physics2D.Raycast(transform.position + wallColliderOffset, Vector2. right, wallLength, groundLayer);
         
 
-        if(Input.GetButtonDown("Jump"))
+        if(Input.GetButton("Jump"))
         {
             jumpTimer = Time.time + jumpDelay; // if the current time is within the jump timer time (Current time + Jump delay) you can jump.
         }
@@ -168,7 +168,7 @@ make x and y uneven to make it an angle.
 
 */
 
-    void modifyPhysics() // Drag
+  void modifyPhysics() // Drag
     {
         bool changeDirection = (direction.x > 0 && rb.velocity.x < 0) || (direction.x < 0 && rb.velocity.x > 0);
 
@@ -191,14 +191,11 @@ make x and y uneven to make it an angle.
             rb.drag = linearDrag * 0.15f;
             if (rb.velocity.y < 0)
             {
-                rb.gravityScale = gravity * fallMultiplier;
+                rb.gravityScale = gravity;
             }
             else if(rb.velocity.y > 0 && !Input.GetButton("Jump")) // if jumping but let go of the jump key
             {
                 rb.gravityScale = gravity * (fallMultiplier / 2); // limit jump height
-            }
-            {
-
             }
         }
     }
