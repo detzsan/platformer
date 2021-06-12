@@ -12,12 +12,12 @@ public class PlayerMovement : MonoBehaviour
     private bool faceRight = true;
 
     [Header("Vertical Movement")]
-    public float jumpForce = 6f;
+    public float jumpForce = 5f;
     public float jumpDelay = 0.25f;
     private float jumpTimer;
 
     [Header("Dashes")]
-    public float dashForce = 8.5f;
+    public float dashForce = 4f;
     public float dashDelay = 0.25f;
     public float dashTimer;
     public bool canDash = false;
@@ -31,8 +31,8 @@ public class PlayerMovement : MonoBehaviour
     public float maxSpeed = 10f;
     public float linearDrag = 4f;
     public float gravity = 1f;
-    public float gravityOffTime = 0.3f; // How long before turning gravity back on
-    public float fallMultiplier = 3f;
+    public float gravityOffTime = 0.25f; // How long before turning gravity back on
+    public float fallMultiplier = 5f;
 
     [Header("Ground Collision")]
     public bool isGrounded = false;
@@ -104,7 +104,7 @@ public class PlayerMovement : MonoBehaviour
 
     void moveChar(float horizontal)
     {
-        rb.AddForce(Vector2.right * horizontal * moveSpeed);
+       rb.AddForce(Vector2.right * horizontal * moveSpeed);
 
         if((horizontal > 0 && !faceRight || horizontal < 0 && faceRight))
         {
@@ -114,6 +114,7 @@ public class PlayerMovement : MonoBehaviour
         if(Mathf.Abs(rb.velocity.x) > maxSpeed) // Setting a Maximum Speed
         {
             rb.velocity = new Vector2(Mathf.Sign(rb.velocity.x) * maxSpeed, rb.velocity.y);
+
         }
 
     }
@@ -128,7 +129,7 @@ public class PlayerMovement : MonoBehaviour
     void Dash()
     {
         
-        rb.velocity = new Vector2(rb.velocity.x, 0);
+        rb.velocity = new Vector2(rb.velocity.x / 2, rb.velocity.y / 2);
         gravity = 0;
         Invoke("resetGravity", gravityOffTime); // Invokes the function resetGravity, which sets gravity back to 1. gravityOffTime is how long it takes before excecuting the resetGravity function.
         rb.AddForce(new Vector2(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical")) * dashForce, ForceMode2D.Impulse);
