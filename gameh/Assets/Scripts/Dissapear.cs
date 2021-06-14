@@ -16,13 +16,15 @@ public class Dissapear : MonoBehaviour
     {
             if(colliderOn == true)
             {
-                this.GetComponent<Collider2D>().enabled = false;
+                //this.GetComponent<Collider2D>().enabled = false;
+                this.GetComponent<SpriteRenderer>().enabled = false;
                 colliderOn = false;
             }
             
             if(colliderOn == false)
             {
-                this.GetComponent<Collider2D>().enabled = true;
+                //this.GetComponent<Collider2D>().enabled = true;
+                this.GetComponent<SpriteRenderer>().enabled = true;
                 colliderOn = true;
             }
     }
