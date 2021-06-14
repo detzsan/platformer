@@ -15,6 +15,7 @@ public class PlayerMovement : MonoBehaviour
     public float jumpForce = 5f;
     public float jumpDelay = 0.25f;
     private float jumpTimer;
+    public bool canJump;
 
     [Header("Dashes")]
     public float dashForce = 4f;
@@ -52,6 +53,15 @@ public class PlayerMovement : MonoBehaviour
      if(col.gameObject.tag == "Ground")
         {
             canDash = true;
+            canJump = true; 
+        }
+ }
+
+ void OnTriggerEnter2D(Collider2D col)
+ {  
+     if(col.gameObject.tag == "JumpReset")
+        {
+            canJump = true;
         }
  }
 
@@ -60,7 +70,7 @@ public class PlayerMovement : MonoBehaviour
 
         // jump raycast
         isGrounded = Physics2D.Raycast(transform.position + groundColliderOffset, Vector2.down, groundLength, groundLayer) || Physics2D.Raycast(transform.position - groundColliderOffset, Vector2.down, groundLength, groundLayer); 
-        
+
         // wall raycast
         onWall = Physics2D.Raycast(transform.position + wallColliderOffset, Vector2. right, wallLength, groundLayer);
         
@@ -89,7 +99,7 @@ public class PlayerMovement : MonoBehaviour
     {
         moveChar(direction.x);
         wallSlide();
-        if(jumpTimer > Time.time && isGrounded)
+        if(jumpTimer > Time.time && canJump)
         {
             Jump();
         }
@@ -121,6 +131,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Jump()
     {
+        canJump = false;
         rb.velocity = new Vector2(rb.velocity.x, 0);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         jumpTimer = 0;
