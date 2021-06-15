@@ -16,6 +16,7 @@ public class PlayerMovement : MonoBehaviour
     public float jumpDelay = 0.25f;
     private float jumpTimer;
     public bool canJump;
+    public bool canDoubleJump = false;
 
     [Header("Dashes")]
     public float dashForce = 4f;
@@ -23,6 +24,7 @@ public class PlayerMovement : MonoBehaviour
     public float dashTimer;
     public bool canDash = false;
     public bool isDashing = false;
+    public bool canDoubleDash = false;
 
     [Header("Unity Stuff")]
     public Rigidbody2D rb;
@@ -53,7 +55,9 @@ public class PlayerMovement : MonoBehaviour
      if(col.gameObject.tag == "Ground")
         {
             canDash = true;
-            canJump = true; 
+            canJump = true;
+            canDoubleJump = false;
+            canDoubleDash = false;
         }
  }
 
@@ -61,7 +65,12 @@ public class PlayerMovement : MonoBehaviour
  {  
      if(col.gameObject.tag == "JumpReset")
         {
-            canJump = true;
+            canDoubleJump = true;
+        }
+
+        if(col.gameObject.tag == "DashReset")
+        {
+            canDoubleDash = true;
         }
  }
 
@@ -75,7 +84,7 @@ public class PlayerMovement : MonoBehaviour
         onWall = Physics2D.Raycast(transform.position + wallColliderOffset, Vector2. right, wallLength, groundLayer);
         
 
-        if(Input.GetButton("Jump"))
+        if(Input.GetButtonDown("Jump"))
         {
             jumpTimer = Time.time + jumpDelay; // if the current time is within the jump timer time (Current time + Jump delay) you can jump.
         }
@@ -104,11 +113,21 @@ public class PlayerMovement : MonoBehaviour
             Jump();
         }
 
+        if(Input.GetButtonDown("Jump") && canDoubleJump == true)
+        {
+            DoubleJump();
+        }
+
         modifyPhysics();
 
         if(dashTimer > Time.time && canDash)
         {
             Dash();
+        }
+
+        if(Input.GetKeyDown(KeyCode.G) && canDoubleDash == true)
+        {
+            DoubleDash();
         }
     }
 
@@ -136,6 +155,13 @@ public class PlayerMovement : MonoBehaviour
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         jumpTimer = 0;
     }
+   
+    void DoubleJump()
+    {
+        canDoubleJump = false;
+        rb.velocity = new Vector2(rb.velocity.x, 0);
+        rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+    }
 
     void Dash()
     {
@@ -148,6 +174,16 @@ public class PlayerMovement : MonoBehaviour
         dashTimer = 0;
 
     }
+
+    void DoubleDash()
+    {
+        rb.velocity = new Vector2(rb.velocity.x / 2, rb.velocity.y / 2);
+        gravity = 0;
+        Invoke("resetGravity", gravityOffTime); // Invokes the function resetGravity, which sets gravity back to 1. gravityOffTime is how long it takes before excecuting the resetGravity function.
+        rb.AddForce(new Vector2(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical")) * dashForce, ForceMode2D.Impulse);
+        canDoubleDash = false;
+    }
+
 
     void wallSlide() // Wallsliding
     {

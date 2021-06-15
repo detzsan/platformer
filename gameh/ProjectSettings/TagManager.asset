@@ -7,6 +7,8 @@ TagManager:
   - Ground
   - Wall
   - JumpReset
+  - Fail
+  - DashReset
   layers:
   - Default
   - TransparentFX
